@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="One Day" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>One Day at a Time</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(160deg, #fefce8 0%, #f0fdf4 50%, #fdf4ff 100%);
+      background-attachment: fixed;
+      color: #1c1917;
+      min-height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .page { max-width: 440px; margin: 0 auto; padding: 32px 18px 80px; }
+
+    /* Header */
+    .header { text-align: center; margin-bottom: 28px; }
+    .header-eyebrow { font-size: 11px; letter-spacing: 0.25em; color: #a8a29e; text-transform: uppercase; font-weight: 500; margin-bottom: 6px; }
+    .header-title { font-family: 'DM Serif Display', serif; font-size: 30px; color: #1c1917; font-weight: 400; }
+    .header-affirmation { font-size: 13px; color: #a8a29e; margin-top: 8px; font-style: italic; }
+
+    /* Cards */
+    .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+    .card-label { font-size: 11px; letter-spacing: 0.2em; color: #a8a29e; text-transform: uppercase; font-weight: 500; margin-bottom: 14px; }
+
+    /* Streak */
+    .streak-card { text-align: center; position: relative; overflow: hidden; padding: 32px 24px 28px; }
+    .streak-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+    .streak-number { font-family: 'DM Serif Display', serif; font-size: 96px; font-weight: 600; line-height: 1; }
+    .streak-sub { font-size: 16px; color: #9ca3af; margin-bottom: 18px; margin-top: 2px; }
+    .phase-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 100px; padding: 6px 16px; }
+    .phase-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .phase-label { font-size: 13px; font-weight: 500; }
+    .phase-desc { font-size: 13px; color: #9ca3af; margin-top: 10px; }
+
+    /* Grid */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .stat-label { font-size: 11px; color: #a8a29e; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 500; }
+    .stat-number { font-size: 32px; font-weight: 600; color: #22c55e; margin-top: 4px; }
+    .stat-sub { font-size: 12px; color: #d1d5db; }
+
+    /* Next milestone */
+    .milestone-next-icon { font-size: 22px; margin-top: 4px; }
+    .milestone-next-label { font-size: 13px; font-weight: 500; margin-top: 2px; }
+    .progress-track { margin-top: 8px; height: 5px; background: #f3f4f6; border-radius: 100px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 100px; transition: width 0.6s ease; }
+
+    /* Buttons */
+    button { font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.18s ease; border: none; outline: none; }
+    .btn-checkin {
+      flex: 3; background: linear-gradient(135deg, #22c55e, #16a34a);
+      border-radius: 18px; padding: 20px 24px; color: white;
+      font-size: 16px; font-weight: 600; box-shadow: 0 4px 14px rgba(34,197,94,0.3);
+    }
+    .btn-checkin:active { transform: scale(0.97); }
+    .btn-slip {
+      flex: 1; background: white; border: 1px solid #e5e7eb !important;
+      border-radius: 18px; padding: 20px 12px; color: #9ca3af;
+      font-size: 12px; font-weight: 500;
+    }
+    .checkin-row { display: flex; gap: 10px; margin-bottom: 14px; }
+
+    /* Status cards */
+    .status-clean { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1.5px solid #86efac; border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 14px; }
+    .status-slip  { background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 14px; }
+    .status-icon { font-size: 22px; }
+    .status-title { font-size: 15px; font-weight: 600; margin-top: 6px; }
+    .status-sub   { font-size: 12px; margin-top: 4px; }
+
+    /* Calendar strip */
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; }
+    .cal-day {
+      aspect-ratio: 1; border-radius: 10px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .cal-check { font-size: 16px; }
+    .cal-date  { font-size: 9px; color: #d1d5db; margin-top: 1px; }
+
+    /* Milestones */
+    .milestone-row { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid #f3f4f6; transition: opacity 0.3s; }
+    .milestone-row:last-child { border-bottom: none; }
+    .milestone-icon-box { width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .milestone-title { font-size: 13px; font-weight: 500; }
+    .milestone-sub   { font-size: 11px; color: #d1d5db; margin-top: 2px; }
+    .milestone-badge { font-size: 11px; font-weight: 600; border-radius: 100px; padding: 3px 10px; }
+
+    /* Save/Load */
+    .save-load-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .btn-save { background: white; border: 1.5px solid #86efac !important; border-radius: 14px; padding: 13px; color: #16a34a; font-size: 13px; font-weight: 600; }
+    .btn-load { background: white; border: 1.5px solid #bfdbfe !important; border-radius: 14px; padding: 13px; color: #3b82f6; font-size: 13px; font-weight: 600; }
+    .save-panel { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 20px; padding: 20px; margin-bottom: 14px; }
+    .load-panel { background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 20px; padding: 20px; margin-bottom: 14px; }
+    .panel-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .panel-desc  { font-size: 12px; color: #6b7280; margin-bottom: 12px; line-height: 1.5; }
+    .code-box {
+      background: white; border-radius: 10px; padding: 12px;
+      font-size: 11px; color: #374151; word-break: break-all;
+      font-family: monospace; line-height: 1.6; margin-bottom: 12px;
+      border: 1px solid #d1fae5; user-select: all; -webkit-user-select: all;
+    }
+    .btn-copy   { width: 100%; background: #22c55e; border-radius: 10px; padding: 12px; color: white; font-size: 14px; font-weight: 600; }
+    .btn-restore { width: 100%; background: #3b82f6; border-radius: 10px; padding: 12px; color: white; font-size: 14px; font-weight: 600; }
+    textarea {
+      width: 100%; background: white; border-radius: 10px; padding: 10px 12px;
+      font-size: 12px; font-family: monospace; resize: none;
+      margin-bottom: 8px; color: #374151; outline: none;
+      border: 1.5px solid #bfdbfe;
+    }
+    textarea.error { border-color: #fca5a5; }
+    .error-msg { font-size: 12px; color: #ef4444; margin-bottom: 8px; }
+
+    /* Backfill */
+    .btn-backfill { width: 100%; background: white; border: 1.5px dashed #e5e7eb !important; border-radius: 16px; padding: 14px; color: #9ca3af; font-size: 13px; font-weight: 500; margin-bottom: 14px; }
+    .backfill-panel { margin-bottom: 14px; }
+    input[type="date"] {
+      width: 100%; background: #f9fafb; border: 1.5px solid #e5e7eb;
+      border-radius: 10px; padding: 10px 12px; color: #1c1917;
+      font-size: 14px; margin-bottom: 12px; font-family: 'DM Sans', sans-serif; outline: none;
+    }
+    .type-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .btn-type { flex: 1; border-radius: 10px; padding: 10px; font-size: 13px; font-weight: 500; border: 1.5px solid #f3f4f6 !important; background: #f9fafb; color: #9ca3af; }
+    .btn-type.active-clean { border-color: #86efac !important; background: #f0fdf4; color: #16a34a; }
+    .btn-type.active-slip  { border-color: #fcd34d !important; background: #fffbeb; color: #d97706; }
+    .action-row { display: flex; gap: 8px; }
+    .btn-bf-save   { flex: 2; background: #22c55e; border-radius: 10px; padding: 11px; color: white; font-size: 13px; font-weight: 600; }
+    .btn-bf-cancel { flex: 1; background: #f9fafb; border: 1.5px solid #e5e7eb !important; border-radius: 10px; padding: 11px; color: #9ca3af; font-size: 13px; }
+
+    /* Reset */
+    .btn-reset { background: transparent; color: #d1d5db; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; display: block; margin: 8px auto 0; }
+
+    /* Toast */
+    #toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: white; border-radius: 100px; padding: 12px 22px;
+      font-size: 14px; color: #374151; z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12); white-space: nowrap;
+      animation: fadeUp 0.25s ease; display: none;
+    }
+    #toast.show { display: block; }
+
+    /* Celebration */
+    #celebration {
+      position: fixed; inset: 0;
+      background: linear-gradient(160deg, #fefce8ee, #f0fdf4ee);
+      z-index: 999; display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    #celebration.show { display: flex; animation: fadeUp 0.3s ease; }
+    .cel-icon  { font-size: 80px; animation: popIn 0.4s ease; }
+    .cel-day   { font-family: 'DM Serif Display', serif; font-size: 42px; margin-top: 16px; text-align: center; }
+    .cel-title { font-size: 20px; color: #374151; margin-top: 10px; font-weight: 500; }
+    .cel-sub   { font-size: 15px; color: #9ca3af; margin-top: 6px; }
+    .cel-hint  { margin-top: 32px; font-size: 13px; color: #d1d5db; animation: pulse 1.5s ease infinite; }
+
+    @keyframes fadeUp { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+    @keyframes popIn  { 0%{transform:scale(0.85);opacity:0} 70%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
+    @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div id="celebration">
+  <div class="cel-icon" id="cel-icon"></div>
+  <div class="cel-day"  id="cel-day"></div>
+  <div class="cel-title" id="cel-title"></div>
+  <div class="cel-sub"   id="cel-sub"></div>
+  <div class="cel-hint">tap anywhere to continue</div>
+</div>
+
+<div class="page">
+
+  <div class="header">
+    <div class="header-eyebrow">Your Journey</div>
+    <div class="header-title">One Day at a Time</div>
+    <div class="header-affirmation" id="affirmation"></div>
+  </div>
+
+  <!-- Streak card -->
+  <div class="card streak-card">
+    <div class="streak-bar" id="streak-bar"></div>
+    <div class="card-label" style="margin-bottom:10px">Current streak</div>
+    <div class="streak-number" id="streak-number">0</div>
+    <div class="streak-sub">days clean</div>
+    <div class="phase-pill" id="phase-pill">
+      <div class="phase-dot" id="phase-dot"></div>
+      <span class="phase-label" id="phase-label"></span>
+    </div>
+    <div class="phase-desc" id="phase-desc"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="card" style="margin-bottom:0">
+      <div class="stat-label">Total clean</div>
+      <div class="stat-number" id="total-clean">0</div>
+      <div class="stat-sub">days — never resets</div>
+    </div>
+    <div class="card" id="next-milestone-card" style="margin-bottom:0">
+      <div class="stat-label">Next milestone</div>
+      <div class="milestone-next-icon" id="next-icon"></div>
+      <div class="milestone-next-label" id="next-label"></div>
+      <div class="progress-track"><div class="progress-fill" id="next-progress"></div></div>
+    </div>
+  </div>
+  <div style="margin-bottom:14px"></div>
+
+  <!-- Check-in -->
+  <div id="checkin-section">
+    <div class="checkin-row" id="checkin-row">
+      <button class="btn-checkin" onclick="checkIn()">✓ I'm clean today</button>
+      <button class="btn-slip" onclick="logSlip()">Log slip</button>
+    </div>
+    <div class="status-clean hidden" id="status-clean">
+      <div class="status-icon">🌱</div>
+      <div class="status-title" style="color:#16a34a">Today is logged — keep going</div>
+      <div class="status-sub" style="color:#86efac">Come back tomorrow</div>
+    </div>
+    <div class="status-slip hidden" id="status-slip">
+      <div class="status-icon">💛</div>
+      <div class="status-title" style="color:#d97706">Tomorrow is a fresh start</div>
+      <div class="status-sub" style="color:#fcd34d">Slips are part of the journey — not the end of it</div>
+    </div>
+  </div>
+
+  <!-- 14-day calendar -->
+  <div class="card">
+    <div class="card-label">Last 14 days</div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <!-- Milestones -->
+  <div class="card">
+    <div class="card-label">Milestones</div>
+    <div id="milestones-list"></div>
+  </div>
+
+  <!-- Save / Load -->
+  <div class="save-load-grid">
+    <button class="btn-save" onclick="toggleSave()">💾 Save progress</button>
+    <button class="btn-load" onclick="toggleLoad()">📂 Load progress</button>
+  </div>
+
+  <div class="save-panel hidden" id="save-panel">
+    <div class="panel-title" style="color:#16a34a">Your save code</div>
+    <div class="panel-desc">Copy this and save it in your Notes app. Paste it back with "Load progress" to restore everything.</div>
+    <div class="code-box" id="save-code-box"></div>
+    <button class="btn-copy" id="btn-copy" onclick="copyCode()">Copy code</button>
+  </div>
+
+  <div class="load-panel hidden" id="load-panel">
+    <div class="panel-title" style="color:#3b82f6">Restore from save code</div>
+    <div class="panel-desc">Paste your save code below to bring back your data.</div>
+    <textarea id="import-input" rows="3" placeholder="Paste your code here…" oninput="this.classList.remove('error')"></textarea>
+    <div class="error-msg hidden" id="import-error">Invalid code — please check and try again.</div>
+    <button class="btn-restore" onclick="importData()">Restore data</button>
+  </div>
+
+  <!-- Backfill -->
+  <button class="btn-backfill" id="btn-backfill-open" onclick="openBackfill()">+ Add a past day</button>
+  <div class="card backfill-panel hidden" id="backfill-panel">
+    <div class="card-label" style="margin-bottom:14px;font-size:14px;color:#374151;font-weight:500;letter-spacing:0;text-transform:none">Add a past day</div>
+    <input type="date" id="backfill-date" />
+    <div class="type-row">
+      <button class="btn-type active-clean" id="btn-type-clean" onclick="setType('clean')">✓ Clean</button>
+      <button class="btn-type" id="btn-type-slip"  onclick="setType('slip')">· Slip</button>
+    </div>
+    <div class="action-row">
+      <button class="btn-bf-save" onclick="saveBackfill()">Save</button>
+      <button class="btn-bf-cancel" onclick="closeBackfill()">Cancel</button>
+    </div>
+  </div>
+
+  <button class="btn-reset" onclick="resetAll()">Reset all data</button>
+
+</div>
+
+<script>
+  const MILESTONES = [
+    { day:3,  label:"Peak passed",    sublabel:"The hardest part is behind you",       icon:"🌅", color:"#f97316" },
+    { day:7,  label:"One week",       sublabel:"Sleep is starting to heal",             icon:"⭐", color:"#eab308" },
+    { day:14, label:"Two weeks",      sublabel:"Mood finding its footing",              icon:"🌿", color:"#22c55e" },
+    { day:30, label:"One month",      sublabel:"Cravings are fading",                   icon:"🌸", color:"#ec4899" },
+    { day:60, label:"Two months",     sublabel:"Your mind is sharpening",               icon:"💫", color:"#8b5cf6" },
+    { day:90, label:"Three months",   sublabel:"This is your baseline — welcome back",  icon:"🏆", color:"#06b6d4" },
+  ];
+
+  const PHASES = [
+    { range:[0,3],   label:"Day by day",        desc:"Take it one morning at a time.",             color:"#f97316" },
+    { range:[4,10],  label:"Getting through it", desc:"The edge is softening. You're doing it.",    color:"#eab308" },
+    { range:[11,30], label:"Finding rhythm",     desc:"Your body is rebalancing. Keep showing up.", color:"#22c55e" },
+    { range:[31,90], label:"Coming alive",       desc:"Clarity and energy are returning.",          color:"#8b5cf6" },
+    { range:[91,999],label:"Full bloom",         desc:"You found yourself again.",                  color:"#06b6d4" },
+  ];
+
+  const AFFIRMATIONS = [
+    "Every clean day is a gift to future you.",
+    "You are stronger than any craving.",
+    "Progress, not perfection.",
+    "Your brain is healing right now.",
+    "One day at a time — and today counts.",
+    "You chose yourself today. That matters.",
+    "The discomfort is temporary. The growth is permanent.",
+  ];
+
+  // State
+  let cleanDays = {}, slipDays = {}, streakStart = null;
+  let backfillType = "clean";
+
+  // Helpers
+  function toDateStr(d) {
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function todayStr() { return toDateStr(new Date()); }
+  function formatDate(s) {
+    const [y,m,d] = s.split("-").map(Number);
+    return new Date(y,m-1,d).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  }
+  function getPhase(day) {
+    return PHASES.find(p => day >= p.range[0] && day <= p.range[1]) || PHASES[PHASES.length-1];
+  }
+  function computeStreak(cd, sl, start) {
+    if (!start) return 0;
+    let count = 0, d = new Date(start+"T12:00:00"), now = new Date(todayStr()+"T12:00:00");
+    while (d <= now) {
+      const ds = toDateStr(d);
+      if (sl[ds]) break;
+      if (cd[ds]) count++;
+      d.setDate(d.getDate()+1);
+    }
+    return count;
+  }
+  function totalCleanCount() { return Object.keys(cleanDays).filter(k => cleanDays[k]).length; }
+
+  // Persistence
+  function save() {
+    try {
+      localStorage.setItem("sobriety_v3", JSON.stringify({
+        c: Object.keys(cleanDays).filter(k=>cleanDays[k]),
+        s: Object.keys(slipDays).filter(k=>slipDays[k]),
+        ss: streakStart
+      }));
+    } catch(e) {}
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem("sobriety_v3");
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      (d.c||[]).forEach(k => cleanDays[k]=true);
+      (d.s||[]).forEach(k => slipDays[k]=true);
+      streakStart = d.ss || null;
+    } catch(e) {}
+  }
+
+  // Encode/decode for export
+  function encodeData() {
+    return btoa(JSON.stringify({
+      c: Object.keys(cleanDays).filter(k=>cleanDays[k]),
+      s: Object.keys(slipDays).filter(k=>slipDays[k]),
+      ss: streakStart
+    }));
+  }
+  function decodeData(code) {
+    try {
+      const d = JSON.parse(atob(code.trim()));
+      cleanDays = {}; slipDays = {};
+      (d.c||[]).forEach(k => cleanDays[k]=true);
+      (d.s||[]).forEach(k => slipDays[k]=true);
+      streakStart = d.ss || null;
+      return true;
+    } catch { return false; }
+  }
+
+  // Toast
+  let toastTimer;
+  function showToast(msg, ms=3000) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), ms);
+  }
+
+  // Celebration
+  function showCelebration(m) {
+    document.getElementById("cel-icon").textContent = m.icon;
+    document.getElementById("cel-day").textContent = "Day " + m.day;
+    document.getElementById("cel-day").style.color = m.color;
+    document.getElementById("cel-title").textContent = m.label;
+    document.getElementById("cel-sub").textContent = m.sublabel;
+    const el = document.getElementById("celebration");
+    el.classList.add("show");
+    el.onclick = () => el.classList.remove("show");
+    setTimeout(() => el.classList.remove("show"), 4500);
+  }
+
+  // Render
+  function render() {
+    const today = todayStr();
+    const streak = computeStreak(cleanDays, slipDays, streakStart);
+    const total = totalCleanCount();
+    const phase = getPhase(streak);
+    const next = MILESTONES.find(m => m.day > streak);
+    const checkedToday = cleanDays[today];
+    const slippedToday = slipDays[today];
+
+    // Streak
+    document.getElementById("streak-number").textContent = streak;
+    document.getElementById("streak-number").style.color = phase.color;
+    document.getElementById("streak-bar").style.background = `linear-gradient(90deg,${phase.color}44,${phase.color},${phase.color}44)`;
+    document.getElementById("phase-pill").style.background = phase.color + "15";
+    document.getElementById("phase-dot").style.background = phase.color;
+    document.getElementById("phase-label").textContent = phase.label;
+    document.getElementById("phase-label").style.color = phase.color;
+    document.getElementById("phase-desc").textContent = phase.desc;
+
+    // Total
+    document.getElementById("total-clean").textContent = total;
+
+    // Next milestone
+    const nmCard = document.getElementById("next-milestone-card");
+    if (next) {
+      document.getElementById("next-icon").textContent = next.icon;
+      document.getElementById("next-label").textContent = `Day ${next.day} — ${next.day - streak}d away`;
+      document.getElementById("next-label").style.color = next.color;
+      const pct = Math.min(100, Math.round((streak/next.day)*100));
+      document.getElementById("next-progress").style.width = pct + "%";
+      document.getElementById("next-progress").style.background = `linear-gradient(90deg,${next.color}88,${next.color})`;
+    } else {
+      nmCard.innerHTML = `<div style="text-align:center;padding:8px 0"><div style="font-size:28px">🏆</div><div style="font-size:13px;color:#22c55e;font-weight:600;margin-top:4px">All milestones reached</div></div>`;
+    }
+
+    // Check-in state
+    document.getElementById("checkin-row").classList.toggle("hidden", !!(checkedToday || slippedToday));
+    document.getElementById("status-clean").classList.toggle("hidden", !checkedToday);
+    document.getElementById("status-slip").classList.toggle("hidden", !slippedToday);
+
+    // Calendar
+    const grid = document.getElementById("cal-grid");
+    grid.innerHTML = "";
+    for (let i=13; i>=0; i--) {
+      const d = new Date(); d.setDate(d.getDate()-i);
+      const ds = toDateStr(d);
+      const isClean = cleanDays[ds], isSlip = slipDays[ds], isToday = ds===today;
+      const day = document.createElement("div");
+      day.className = "cal-day";
+      day.style.background = isClean?"#f0fdf4":isSlip?"#fffbeb":"#f9fafb";
+      day.style.border = isToday?"2px solid #22c55e":isClean?"1.5px solid #86efac":isSlip?"1.5px solid #fcd34d":"1.5px solid #f3f4f6";
+      day.innerHTML = `<div class="cal-check" style="color:${isClean?"#22c55e":isSlip?"#f59e0b":"#e5e7eb"}">${isClean?"✓":"·"}</div><div class="cal-date">${formatDate(ds).split(" ")[1]}</div>`;
+      grid.appendChild(day);
+    }
+
+    // Milestones
+    const list = document.getElementById("milestones-list");
+    list.innerHTML = "";
+    MILESTONES.forEach((m, i) => {
+      const reached = streak >= m.day;
+      const row = document.createElement("div");
+      row.className = "milestone-row";
+      row.style.opacity = reached ? "1" : "0.45";
+      if (i === MILESTONES.length-1) row.style.borderBottom = "none";
+      row.innerHTML = `
+        <div class="milestone-icon-box" style="background:${reached?m.color+"18":"#f9fafb"}">${reached?m.icon:"○"}</div>
+        <div style="flex:1">
+          <div class="milestone-title" style="color:${reached?"#1c1917":"#9ca3af"}">Day ${m.day} — ${m.label}</div>
+          <div class="milestone-sub">${m.sublabel}</div>
+        </div>
+        ${reached?`<div class="milestone-badge" style="color:${m.color};background:${m.color}15">Done ✓</div>`:""}
+      `;
+      list.appendChild(row);
+    });
+
+    // Save code
+    document.getElementById("save-code-box").textContent = encodeData();
+  }
+
+  // Actions
+  function checkIn() {
+    const today = todayStr();
+    if (cleanDays[today] || slipDays[today]) return;
+    cleanDays[today] = true;
+    if (!streakStart) streakStart = today;
+    save(); render();
+    const streak = computeStreak(cleanDays, slipDays, streakStart);
+    const hit = MILESTONES.find(m => m.day === streak);
+    if (hit) showCelebration(hit);
+    else showToast(`Day ${streak} — you showed up today 🌱`);
+  }
+
+  function logSlip() {
+    if (!confirm("Log today as a slip? Your streak will reset, but your total clean days are safe.")) return;
+    slipDays[todayStr()] = true;
+    streakStart = null;
+    save(); render();
+    showToast("Tomorrow is a brand new start. You've got this. 💛", 5000);
+  }
+
+  function toggleSave() {
+    document.getElementById("save-panel").classList.toggle("hidden");
+    document.getElementById("load-panel").classList.add("hidden");
+  }
+  function toggleLoad() {
+    document.getElementById("load-panel").classList.toggle("hidden");
+    document.getElementById("save-panel").classList.add("hidden");
+    document.getElementById("import-input").value = "";
+    document.getElementById("import-error").classList.add("hidden");
+  }
+
+  function copyCode() {
+    const code = encodeData();
+    navigator.clipboard.writeText(code).then(() => {
+      const btn = document.getElementById("btn-copy");
+      btn.textContent = "✓ Copied!";
+      btn.style.background = "#16a34a";
+      setTimeout(() => { btn.textContent = "Copy code"; btn.style.background = "#22c55e"; }, 2500);
+    }).catch(() => showToast("Long-press the code above to copy manually"));
+  }
+
+  function importData() {
+    const code = document.getElementById("import-input").value;
+    if (!decodeData(code)) {
+      document.getElementById("import-input").classList.add("error");
+      document.getElementById("import-error").classList.remove("hidden");
+      return;
+    }
+    save(); render();
+    document.getElementById("load-panel").classList.add("hidden");
+    showToast("Data restored ✓");
+  }
+
+  function openBackfill() {
+    document.getElementById("btn-backfill-open").classList.add("hidden");
+    document.getElementById("backfill-panel").classList.remove("hidden");
+    document.getElementById("backfill-date").max = todayStr();
+    document.getElementById("backfill-date").value = "";
+    setType("clean");
+  }
+  function closeBackfill() {
+    document.getElementById("btn-backfill-open").classList.remove("hidden");
+    document.getElementById("backfill-panel").classList.add("hidden");
+  }
+  function setType(t) {
+    backfillType = t;
+    document.getElementById("btn-type-clean").className = "btn-type" + (t==="clean"?" active-clean":"");
+    document.getElementById("btn-type-slip").className  = "btn-type" + (t==="slip"?" active-slip":"");
+  }
+  function saveBackfill() {
+    const date = document.getElementById("backfill-date").value;
+    if (!date) return;
+    if (backfillType === "clean") {
+      cleanDays[date] = true;
+      if (!streakStart || date < streakStart) streakStart = date;
+      showToast(`${formatDate(date)} added ✓`);
+    } else {
+      slipDays[date] = true;
+      streakStart = null;
+      showToast(`${formatDate(date)} logged as slip.`);
+    }
+    save(); render(); closeBackfill();
+  }
+
+  function resetAll() {
+    if (!confirm("Clear all data and start fresh?")) return;
+    cleanDays = {}; slipDays = {}; streakStart = null;
+    localStorage.removeItem("sobriety_v3");
+    render();
+    showToast("Fresh start. Day 0. Let's go. ✨");
+  }
+
+  // Init
+  document.getElementById("affirmation").textContent = AFFIRMATIONS[new Date().getDate() % AFFIRMATIONS.length];
+  document.getElementById("celebration").onclick = () => document.getElementById("celebration").classList.remove("show");
+  load();
+  render();
+</script>
+</body>
+</html>
